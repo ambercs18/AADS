@@ -74,6 +74,63 @@ void printList (Node head)
         curr = next; 
     } 
 } 
+
+Node delf(Node head)
+{
+    if(head==NULL)
+    return head;
+    else if(head->next==NULL)
+    {
+        printf("\nDeleted value is %d",head->d);
+        free(head);
+        return NULL;
+    }
+    else
+    {
+         printf("\nDeleted value is %d",head->d);
+         Node q=head;
+         Node p=head->next;
+        // printf("%d",p->next->d);
+         p->next=Xor(head,p->next);
+         free(q);
+        //  head=p;
+         return p;
+        
+    }
+}
+
+
+Node delend(Node head)
+{
+    if(head==NULL)
+    return head;
+    else if(head->next==NULL)
+    {
+        printf("\nDeleted value is %d",head->d);
+        free(head);
+        return NULL;
+    }
+    else
+    {
+        Node p=head;
+        Node q=NULL;
+        Node r;
+        while(p!=NULL)
+        {
+            r=Xor(q,p->next);
+            q=p;
+            p=r;
+        }
+        
+        printf("\nDeleted value is %d\n",q->d);
+        Node s=q->next;
+        s->next=Xor(q,s->next);
+        free(q);
+        return head;
+    }
+    
+    
+}
 int main()
 {
     Node head=NULL;
