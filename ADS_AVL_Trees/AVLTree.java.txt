@@ -1,0 +1,347 @@
+import java.util.Iterator;
+import java.util.Scanner;
+import java.util.Spliterator;
+import java.util.function.Consumer;
+
+public class AVLTree <T extends Comparable<T>> implements Iterable<T>
+{
+
+    class Node implements TreePrinter.PrintableNode
+    {
+        T val;
+        int height;
+        Node left,right;
+
+        int bf;
+
+        Node(T v)
+        {
+            this.val=v;
+        }
+
+        @Override
+        public TreePrinter.PrintableNode getLeft() {
+            return left;
+        }
+
+        @Override
+        public TreePrinter.PrintableNode getRight() {
+            return right;
+        }
+
+        @Override
+        public String getText() {
+            return val.toString();
+        }
+    }
+
+    Node root;
+    int count=0;
+
+    int height()
+    {
+        if(root==null)
+            return 0;
+        return root.height;
+    }
+
+    int size()
+    {
+        return count;
+    }
+
+    boolean isEmpty()
+    {
+        return size()==0;
+    }
+
+    public boolean contains(T val)
+    {
+        return contains(root,val);
+    }
+
+    private boolean contains(Node root,T val)
+    {
+        if(root==null)
+            return false;
+
+        int cmp=val.compareTo(root.val);
+
+        if(cmp<0)
+            return contains(root.left,val);
+        if(cmp>0)
+            return contains(root.right,val);
+        return true;
+    }
+
+    public boolean insert(T val)
+    {
+        if(val==null)
+            return false;
+        if(!contains(root,val))
+        {
+            count++;
+            root=insert(root,val);
+            return true;
+        }
+        return false;
+    }
+
+    private Node insert(Node root,T val)
+    {
+        if(root==null)
+            return new Node(val);
+
+        int cmp=val.compareTo(root.val);
+
+        if(cmp<0)
+            root.left= insert(root.left,val);
+
+        if(cmp>0)
+            root.right= insert(root.right,val);
+
+        update(root);
+
+        return balance(root);
+    }
+
+    public void update(Node root)
+    {
+        int leftNodeheight=-1;
+        int rightNodeheight=-1;
+        if(root.left!=null)
+            leftNodeheight=root.left.height;
+
+        if(root.right!=null)
+            rightNodeheight=root.right.height;
+
+        root.height=1+Math.max(leftNodeheight,rightNodeheight);
+
+        root.bf=rightNodeheight-leftNodeheight;
+    }
+
+    public Node balance(Node root) {
+        if (root.bf == -2) {
+            if (root.left.bf <= 0)
+                return leftLeftCase(root);
+            else
+                return leftRightCase(root);
+        } else if (root.bf == 2) {
+            if (root.right.bf >= 0)
+                return rightRightCase(root);
+            else
+                return rightLeftCase(root);
+        }
+        return root;
+    }
+
+    public Node leftLeftCase(Node root)
+    {
+        return rightRotation(root);
+    }
+
+    public Node leftRightCase(Node root)
+    {
+        root.left=leftLeftCase(root);
+        return leftLeftCase(root);
+    }
+
+    public Node rightRightCase(Node root)
+    {
+        return leftRotation(root);
+    }
+
+    public Node rightLeftCase(Node root)
+    {
+        root.right=rightRightCase(root);
+        return rightRightCase(root);
+    }
+
+    public Node rightRotation(Node root)
+    {
+        Node newRoot=root.left;
+        root.left=newRoot.right;
+        newRoot.right=root;
+
+        update(root);
+        update(newRoot);
+
+        return newRoot;
+    }
+
+    public Node leftRotation(Node root)
+    {
+        Node newRoot=root.right;
+        root.right=newRoot.left;
+        newRoot.left=root;
+
+        update(root);
+        update(newRoot);
+
+        return newRoot;
+    }
+
+
+    public void inOrder(Node root)
+    {
+        if(root==null)
+            return;
+        inOrder(root.left);
+        System.out.print(root.val+" ");
+        inOrder(root.right);
+    }
+
+
+    public Node remove(Node root,T k)
+    {
+        if(root==null)
+            return null;
+
+            int cmp=k.compareTo(root.val);
+
+            if(cmp<0)
+                root.left=remove(root.left,k);
+
+            else if(cmp>0)
+                root.right=remove(root.right,k);
+
+            else
+            {
+                if(root.left==null)
+                    return root.right;
+
+                else if(root.right==null)
+                    return root.left;
+
+                else
+                {
+                    if(root.left.height>root.right.height)
+                    {
+                        T successor=finMax(root.left);
+
+                        root.val=successor;
+
+                        root.left=remove(root.left,successor);
+                    }
+                    else
+                    {
+                        T successor =findMin(root.right);
+
+                        root.val=successor;
+
+                        root.right=remove(root.right,successor);
+
+                    }
+                }
+
+            }
+        update(root);
+
+        return balance(root);
+
+        }
+
+        public T findMin(Node root)
+        {
+            while(root.left!=null)
+                root=root.left;
+            return root.val;
+        }
+
+        public T finMax(Node root)
+        {
+            while(root.right!=null)
+                root=root.right;
+            return root.val;
+        }
+
+
+
+
+    public java.util.Iterator<T> iterator() {
+
+        final int expectedNodeCount = count;
+        final java.util.Stack<Node> stack = new java.util.Stack<>();
+        stack.push(root);
+
+        return new java.util.Iterator<T>() {
+            Node trav = root;
+
+            @Override
+            public boolean hasNext() {
+                if (expectedNodeCount != count) throw new java.util.ConcurrentModificationException();
+                return root != null && !stack.isEmpty();
+            }
+
+            @Override
+            public T next() {
+
+                if (expectedNodeCount != count) throw new java.util.ConcurrentModificationException();
+
+                while (trav != null && trav.left != null) {
+                    stack.push(trav.left);
+                    trav = trav.left;
+                }
+
+                Node node = stack.pop();
+
+                if (node.right != null) {
+                    stack.push(node.right);
+                    trav = node.right;
+                }
+
+                return node.val;
+            }
+
+            @Override
+            public void remove() {
+                throw new UnsupportedOperationException();
+            }
+        };
+    }
+
+    @Override
+    public String toString() {
+        return TreePrinter.getTreeDisplay(root);
+    }
+
+    public static void main(String ar[])
+    {
+        Scanner x=new Scanner(System.in);
+        int ch;
+        AVLTree<Integer> ob=new AVLTree<>();
+
+        char c='y';
+
+        do {
+            System.out.println("Enter 1 to insert a node in the tree\nEnter 2 to display the tree\nEnter 3 to delete a node");
+            ch=x.nextInt();
+            if(ch==1)
+            {
+                System.out.println("Enter a value");
+                int v=x.nextInt();
+                if(ob.insert(v))
+                    System.out.println("Inserted");
+                else
+                    System.out.println("Enter an integer");
+            }
+            else if(ch==2)
+            {
+//                ob.inOrder(ob.root);
+                String st=TreePrinter.getTreeDisplay(ob.root);
+                System.out.println(st);
+            }
+            else if(ch==3)
+            {
+                System.out.println("Enter a value");
+                int v=x.nextInt();
+                ob.root=ob.remove(ob.root,v);
+                System.out.println("Deleted");
+            }
+
+            System.out.println("Do u want to continue y or n ?");
+            c=x.next().charAt(0);
+
+        }while(c!='n');
+    }
+}
