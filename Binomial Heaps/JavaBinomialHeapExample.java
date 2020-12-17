@@ -286,6 +286,8 @@ public class JavaBinomialHeapExample {
             System.out.println("4. check empty");
             System.out.println("5. clear");
             System.out.println("6. find minimum");
+            System.out.println("7. delete");
+            System.out.println("8. decrease");
 
             int choice = scan.nextInt();
             switch (choice) {
@@ -301,6 +303,15 @@ public class JavaBinomialHeapExample {
                     System.out.println("Heap Cleared\n");
                 }
                 case 6 -> System.out.println("Minimum Element is "+bh.findMinimum());
+                case 7 -> {
+                    System.out.println("Enter integer element to delete");
+                    bh.delete(scan.nextInt());
+                }
+                case 8 ->
+                        {
+                            System.out.println("Enter integer element to decrease and new value");
+                            bh.decreaseKeyValue(scan.nextInt(),scan.nextInt());
+                        }
                 default -> System.out.println("Wrong Entry \n ");
             }
 
